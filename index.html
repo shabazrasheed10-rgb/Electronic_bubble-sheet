@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Electronic Bubble Sheet - Hawler Medical University</title>
     <style>
         * {
@@ -19,23 +19,42 @@
             display: flex;
             flex-direction: column;
             align-items: center;
+            overflow-x: hidden; /* Prevent horizontal scroll on iPhone */
         }
 
-        @page {
-            size: A4;
-            margin: 0; /* Let the .page container handle margins */
+        /* Essential for centering the scaled A4 page on mobile */
+        .viewport-wrapper {
+            display: flex;
+            justify-content: center; 
+            width: 100%;
+            overflow: hidden;
+            position: relative;
         }
 
         .page {
             width: 210mm;
             height: 297mm;
             background: white;
-            /* Shifted content to the right with 15mm left padding */
-            padding: 10mm 10mm 10mm 15mm; 
-            overflow: hidden;
+            /* Adjusting padding to be more balanced for mobile viewing */
+            padding: 10mm 12mm; 
             display: flex;
             flex-direction: column;
             box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            position: relative;
+            transform-origin: top center; /* Ensures it scales into the center */
+            flex-shrink: 0;
+        }
+
+        /* iPhone / Mobile Scaling Logic */
+        @media screen and (max-width: 800px) {
+            .viewport-wrapper {
+                height: 560px; /* Fits the scaled page height */
+            }
+            .page {
+                /* Scale slightly smaller to ensure left/right edges are safe */
+                transform: scale(0.41); 
+                margin-top: 5px;
+            }
         }
 
         .header-university {
@@ -106,6 +125,7 @@
             line-height: 17px;
             font-weight: bold;
             background: white;
+            color: black;
         }
 
         .bubble {
@@ -119,15 +139,16 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            color: #ccc;
+            color: #777;
             cursor: pointer;
             font-weight: bold;
         }
 
+        /* Requirement: Fully black circle hides text */
         .bubble.selected {
-            background-color: black !important;
-            border-color: black !important;
-            color: black !important;
+            background-color: #000 !important;
+            border-color: #000 !important;
+            color: #000 !important; 
         }
 
         .info-box {
@@ -148,13 +169,12 @@
             font-family: inherit;
         }
 
-        /* FIXED QUESTION SHEET BORDER */
         .sheet {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             column-gap: 20px;
             border: 1px solid black; 
-            padding: 10px; /* Slightly reduced padding to ensure fit */
+            padding: 10px;
             margin-top: 5px;
             flex-grow: 1;
         }
@@ -187,6 +207,7 @@
             width: 100%;
             display: flex;
             justify-content: center;
+            background: #f0f2f5;
         }
 
         button {
@@ -201,54 +222,58 @@
         }
 
         @media print {
-            body { background: white; padding: 0; }
+            body { background: white; overflow: visible; }
             .btn-container { display: none; }
+            .viewport-wrapper { height: auto; overflow: visible; }
             .page { 
+                transform: none !important;
                 box-shadow: none; 
-                margin: 0; 
-                width: 210mm;
-                height: 297mm;
-                border: none;
+                margin: 0 !important; 
+                padding: 10mm 10mm 10mm 15mm; /* Restore left margin for holes/binding */
+                width: 210mm !important;
+                height: 297mm !important;
             }
         }
     </style>
 </head>
 <body>
 
-<div class="page">
-    <div class="header-university">
-        Hawler Medical University<br>
-        College of Medicine
+<div class="viewport-wrapper">
+    <div class="page">
+        <div class="header-university">
+            Hawler Medical University<br>
+            College of Medicine
+        </div>
+
+        <div class="top-section">
+            <div class="id-container">
+                <div class="id-label">Student ID</div>
+                <div class="grid-wrapper">
+                    <div class="row-labels" id="labels-sid"></div>
+                    <div id="studentID" class="id-grid"></div>
+                </div>
+            </div>
+
+            <div class="id-container">
+                <div class="id-label">Subject ID</div>
+                <div class="grid-wrapper">
+                    <div class="row-labels" id="labels-subid"></div>
+                    <div id="subjectID" class="id-grid"></div>
+                </div>
+            </div>
+
+            <div class="info-box">
+                <div class="info-line">Candidate Name:<input type="text"></div>
+                <div class="info-line">Stage:<input type="text"></div>
+                <div class="info-line">Subject:<input type="text"></div>
+                <div style="margin-top: 15px;">
+                    Signature:
+                </div>
+            </div>
+        </div>
+
+        <div class="sheet" id="questionSheet"></div>
     </div>
-
-    <div class="top-section">
-        <div class="id-container">
-            <div class="id-label">Student ID</div>
-            <div class="grid-wrapper">
-                <div class="row-labels" id="labels-sid"></div>
-                <div id="studentID" class="id-grid"></div>
-            </div>
-        </div>
-
-        <div class="id-container">
-            <div class="id-label">Subject ID</div>
-            <div class="grid-wrapper">
-                <div class="row-labels" id="labels-subid"></div>
-                <div id="subjectID" class="id-grid"></div>
-            </div>
-        </div>
-
-        <div class="info-box">
-            <div class="info-line">Candidate Name:<input type="text"></div>
-            <div class="info-line">Stage:<input type="text"></div>
-            <div class="info-line">Subject:<input type="text"></div>
-            <div style="margin-top: 15px;">
-                Signature:
-            </div>
-        </div>
-    </div>
-
-    <div class="sheet" id="questionSheet"></div>
 </div>
 
 <div class="btn-container">
@@ -259,18 +284,23 @@
     function initID(gridId, labelId, cols) {
         const grid = document.getElementById(gridId);
         const labels = document.getElementById(labelId);
-        for (let i = 0; i <= 9; i++) {
-            const div = document.createElement('div');
-            div.className = 'row-label';
-            div.textContent = i;
-            labels.appendChild(div);
+        
+        if (labels.innerHTML === "") {
+            for (let i = 0; i <= 9; i++) {
+                const div = document.createElement('div');
+                div.className = 'row-label';
+                div.textContent = i;
+                labels.appendChild(div);
+            }
         }
+
         for (let c = 0; c < cols; c++) {
             const colDiv = document.createElement('div');
             colDiv.className = 'digit-column';
             const box = document.createElement('div');
             box.className = 'digit-box';
             colDiv.appendChild(box);
+
             for (let r = 0; r <= 9; r++) {
                 const b = document.createElement('div');
                 b.className = 'bubble';
