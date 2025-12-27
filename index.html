@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Electronic Bubble Sheet - Hawler Medical University</title>
+    <style>
+        * {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #f0f2f5;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        @page {
+            size: A4;
+            margin: 0; /* Let the .page container handle margins */
+        }
+
+        .page {
+            width: 210mm;
+            height: 297mm;
+            background: white;
+            /* Shifted content to the right with 15mm left padding */
+            padding: 10mm 10mm 10mm 15mm; 
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        .header-university {
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            line-height: 1.2;
+        }
+
+        .top-section {
+            display: grid;
+            grid-template-columns: 1.1fr 1fr 1.3fr;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .id-container {
+            border: 1px solid #000;
+            padding: 5px;
+        }
+
+        .id-label {
+            text-align: center;
+            font-weight: bold;
+            font-size: 12px;
+            margin-bottom: 5px;
+        }
+
+        .grid-wrapper {
+            display: flex;
+            justify-content: center;
+        }
+
+        .row-labels {
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            margin-right: 4px;
+        }
+
+        .row-label {
+            height: 17.5px;
+            font-size: 10px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+        }
+
+        .id-grid {
+            display: flex;
+            gap: 2px;
+        }
+
+        .digit-column {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .digit-box {
+            width: 17px;
+            height: 17px;
+            border: 1px solid #000;
+            margin-bottom: 3px;
+            text-align: center;
+            font-size: 11px;
+            line-height: 17px;
+            font-weight: bold;
+            background: white;
+        }
+
+        .bubble {
+            width: 16px;
+            height: 16px;
+            border: 1px solid #000;
+            background-color: #fff; 
+            border-radius: 50%;
+            margin: 1px 0;
+            font-size: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ccc;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .bubble.selected {
+            background-color: black !important;
+            border-color: black !important;
+            color: black !important;
+        }
+
+        .info-box {
+            border: 1px solid black;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            font-size: 12px;
+        }
+
+        .info-line input {
+            border: none;
+            border-bottom: 1px solid black;
+            width: 100%;
+            outline: none;
+            font-size: 13px;
+            font-family: inherit;
+        }
+
+        /* FIXED QUESTION SHEET BORDER */
+        .sheet {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            column-gap: 20px;
+            border: 1px solid black; 
+            padding: 10px; /* Slightly reduced padding to ensure fit */
+            margin-top: 5px;
+            flex-grow: 1;
+        }
+
+        .question-col {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .question-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1px;
+        }
+
+        .q-number {
+            width: 25px;
+            font-weight: bold;
+            font-size: 11px;
+        }
+
+        .options {
+            display: flex;
+            gap: 4px;
+        }
+
+        .btn-container {
+            padding: 20px;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+        }
+
+        button {
+            padding: 12px 30px;
+            cursor: pointer;
+            font-weight: bold;
+            background: #000;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        @media print {
+            body { background: white; padding: 0; }
+            .btn-container { display: none; }
+            .page { 
+                box-shadow: none; 
+                margin: 0; 
+                width: 210mm;
+                height: 297mm;
+                border: none;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="page">
+    <div class="header-university">
+        Hawler Medical University<br>
+        College of Medicine
+    </div>
+
+    <div class="top-section">
+        <div class="id-container">
+            <div class="id-label">Student ID</div>
+            <div class="grid-wrapper">
+                <div class="row-labels" id="labels-sid"></div>
+                <div id="studentID" class="id-grid"></div>
+            </div>
+        </div>
+
+        <div class="id-container">
+            <div class="id-label">Subject ID</div>
+            <div class="grid-wrapper">
+                <div class="row-labels" id="labels-subid"></div>
+                <div id="subjectID" class="id-grid"></div>
+            </div>
+        </div>
+
+        <div class="info-box">
+            <div class="info-line">Candidate Name:<input type="text"></div>
+            <div class="info-line">Stage:<input type="text"></div>
+            <div class="info-line">Subject:<input type="text"></div>
+            <div style="margin-top: 15px;">
+                Signature:
+            </div>
+        </div>
+    </div>
+
+    <div class="sheet" id="questionSheet"></div>
+</div>
+
+<div class="btn-container">
+    <button onclick="window.print()">Make PDF / Print Sheet</button>
+</div>
+
+<script>
+    function initID(gridId, labelId, cols) {
+        const grid = document.getElementById(gridId);
+        const labels = document.getElementById(labelId);
+        for (let i = 0; i <= 9; i++) {
+            const div = document.createElement('div');
+            div.className = 'row-label';
+            div.textContent = i;
+            labels.appendChild(div);
+        }
+        for (let c = 0; c < cols; c++) {
+            const colDiv = document.createElement('div');
+            colDiv.className = 'digit-column';
+            const box = document.createElement('div');
+            box.className = 'digit-box';
+            colDiv.appendChild(box);
+            for (let r = 0; r <= 9; r++) {
+                const b = document.createElement('div');
+                b.className = 'bubble';
+                b.textContent = r;
+                b.onclick = function() {
+                    const allInCol = colDiv.querySelectorAll('.bubble');
+                    allInCol.forEach(bubble => bubble.classList.remove('selected'));
+                    this.classList.add('selected');
+                    box.textContent = r;
+                };
+                colDiv.appendChild(b);
+            }
+            grid.appendChild(colDiv);
+        }
+    }
+
+    function initQuestions() {
+        const container = document.getElementById('questionSheet');
+        const options = ['A', 'B', 'C', 'D', 'E'];
+        const perCol = 30;
+        for (let c = 0; c < 3; c++) {
+            const col = document.createElement('div');
+            col.className = 'question-col';
+            for (let i = 1; i <= perCol; i++) {
+                const qNum = (c * perCol) + i;
+                const row = document.createElement('div');
+                row.className = 'question-row';
+                const label = document.createElement('div');
+                label.className = 'q-number';
+                label.textContent = qNum + '.';
+                const ops = document.createElement('div');
+                ops.className = 'options';
+                options.forEach(opt => {
+                    const b = document.createElement('div');
+                    b.className = 'bubble';
+                    b.textContent = opt;
+                    b.onclick = function() {
+                        const allInRow = ops.querySelectorAll('.bubble');
+                        allInRow.forEach(bubble => bubble.classList.remove('selected'));
+                        this.classList.add('selected');
+                    };
+                    ops.appendChild(b);
+                });
+                row.appendChild(label);
+                row.appendChild(ops);
+                col.appendChild(row);
+            }
+            container.appendChild(col);
+        }
+    }
+
+    initID('studentID', 'labels-sid', 7);
+    initID('subjectID', 'labels-subid', 6);
+    initQuestions();
+</script>
+
+</body>
+</html>
